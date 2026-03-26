@@ -1,18 +1,21 @@
 body { 
-            background-color: #FFA500; 
+            background-color:orange; 
             text-align: center; 
             font-family: Arial, sans-serif; 
             margin: 0;
             padding: 20px;
         }
-        /* Stile del Canvas (Area di gioco) */
         canvas { 
-            background-color: #f1f1f1; 
-            border: 3px solid #333; 
-            box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+            background-color: white; 
+            border: 3px solid black; 
+            box-shadow: 0px 0px 15px gray;
         }
-        .controls { margin-top: 20px; }
-        .middle-row { margin: 10px 0; }
+        .controls { 
+            margin-top: 20px; 
+        }
+        .middle-row { 
+            margin: 10px 0; 
+        }
         
         button { 
             padding: 15px 30px; 
@@ -20,8 +23,10 @@ body {
             font-weight: bold;
             cursor: pointer; 
             border-radius: 8px;
-            border: 2px solid #333;
+            border: 2px solid black;
             background-color: white;
         }
-        button:active { background-color: #ddd; }
+        button:active { 
+            background-color:gray; 
+        }
     
