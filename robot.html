@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Robot Runner</title>
+    <link rel="stylesheet" href="robot.css">
+</head>
+<body onload="startGame()">
+
+    <h1>The Robot</h1>
+    
+    <div id="canvas-container"></div>
+
+    <div class="controls">
+        <button onmousedown="moveup()" onmouseup="clearmove()">UP</button>
+        <div class="middle-row">
+            <button onmousedown="moveleft()" onmouseup="clearmove()">LEFT</button>
+            <button onmousedown="moveright()" onmouseup="clearmove()">RIGHT</button>
+        </div>
+        <button onmousedown="movedown()" onmouseup="clearmove()">DOWN</button>
+    </div>
+
+    <script src="immagini.js"></script>
+    <script src="robot.js"></script>
+
+</body>
+</html>
