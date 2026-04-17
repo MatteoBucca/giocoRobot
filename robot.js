@@ -1,49 +1,27 @@
 var robot;
-var ostacoli = [];
+var punteggio = 0;
+var mondo = 1;
+var gravita = 0.8;
+var attrito = 0.9;
 
 function startGame() {
     myGameArea.start();
     robot.loadImages();
 }
 
-var myGameArea = {
-    canvas: document.createElement("canvas"),
-    start: function() {
-        this.canvas.width = 790;
-        this.canvas.height = 370;
-        this.context = this.canvas.getContext("2d");
-        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-        this.interval = setInterval(updateGameArea, 20); 
-    },
-    clear: function() {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    },
-    drawGameObject: function(gameObject) {
-            this.context.drawImage(
-                gameObject.image,
-                gameObject.x,
-                gameObject.y,
-                gameObject.width,
-                gameObject.height
-            );
-        
-    },
-    stop: function() {
-        clearInterval(this.interval);
-    }
-};
-
 var robot = {
-    x: 10,
+    x: 100,
     y: 120,
-    width: 80,
-    height: 80,
+    width: 60,
+    height: 60,
     speedX: 0,
     speedY: 0,
     imageList: [],
     actualFrame: 0, 
     contaFrame: 0,
     image: null,
+    onGround: false,
+    saltoForza: -15,
 
     loadImages: function() {
         for (imgPath of running) {
@@ -55,26 +33,42 @@ var robot = {
     },
 
     newPos: function() {
-        this.x = this.x + this.speedX;
-        this.y = this.y + this.speedY;
+        this.speedY += gravita;
+        this.speedX *= attrito;
+        this.x += this.speedX;
+        this.y += this.speedY;
 
-        if (this.x < 0) { 
-            this.x = 0; 
+        let aTerra = false;
+        let pavimentoY = myGameArea.canvas.height - this.height - 20;
+
+        for (let obs of gestioneOstacoli.lista) {
+            if (this.speedY > 0 && 
+                this.x + this.width > obs.x && 
+                this.x < obs.x + obs.width &&
+                this.y + this.height >= obs.y && 
+                this.y + this.height <= obs.y + 20) {
+                
+                this.y = obs.y - this.height;
+                this.speedY = 0;
+                aTerra = true;
+            }
         }
-        if (this.y < 0) { 
-            this.y = 0; 
+
+        if (this.y >= pavimentoY) {
+            this.y = pavimentoY;
+            this.speedY = 0;
+            aTerra = true;
         }
-        if (this.x > myGameArea.canvas.width - this.width) { 
-            this.x = myGameArea.canvas.width - this.width; 
-        }
-        if (this.y > myGameArea.canvas.height - this.height) { 
-            this.y = myGameArea.canvas.height - this.height; 
-        }
+
+        this.onGround = aTerra;
+
+        if (this.x < 0) this.x = 0;
+        if (this.x > myGameArea.canvas.width - this.width) this.x = myGameArea.canvas.width - this.width;
     },
 
     update: function() {
-        if (this.speedX != 0 || this.speedY != 0) {
-            this.contaFrame = this.contaFrame + 1;
+        if (Math.abs(this.speedX) > 0.2) {
+            this.contaFrame++;
             if (this.contaFrame >= 6) {
                 this.contaFrame = 0;
                 this.actualFrame = (this.actualFrame + 1) % this.imageList.length;
@@ -84,39 +78,18 @@ var robot = {
     },
 
     crashWith: function(otherobj) {
-        let myleft = this.x;
-        let myright = this.x + (this.width);
-        let mytop = this.y;
-        let mybottom = this.y + (this.height);
-        let otherleft = otherobj.x;
-        let otherright = otherobj.x + (otherobj.width);
-        let othertop = otherobj.y;
-        let otherbottom = otherobj.y + (otherobj.height);
-        
-        let crash = true;
-        if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
-            crash = false;
-        }
-        return crash;
+        let precisione = 10;
+        return !(this.y + this.height - precisione < otherobj.y || 
+                 this.y + precisione > otherobj.y + otherobj.height || 
+                 this.x + this.width - precisione < otherobj.x || 
+                 this.x + precisione > otherobj.x + otherobj.width);
     }
 };
 
-function obstacleComponent(width, height, x, y) {
-    this.width = width;
-    this.height = height;
-    this.x = x;
-    this.y = y;
-   
-}
-function disegnaOstacolo(tubo) {
-    let ctx = myGameArea.context;
-    ctx.fillStyle = "green";
-    ctx.fillRect(tubo.x, tubo.y, tubo.width, tubo.height);
-}
-
 function updateGameArea() {
-    for (let i = 0; i < ostacoli.length; i++) {
-        if (robot.crashWith(ostacoli[i])) {
+    for (let i = 0; i < gestioneOstacoli.lista.length; i++) {
+        let obs = gestioneOstacoli.lista[i];
+        if (robot.crashWith(obs) && robot.y + robot.height > obs.y + 5) {
             myGameArea.stop();
             return;
         }
@@ -124,29 +97,24 @@ function updateGameArea() {
 
     myGameArea.clear();
     myGameArea.frameNo = (myGameArea.frameNo || 0) + 1;
+    punteggio = myGameArea.frameNo;
 
-    if (myGameArea.frameNo == 1 || everyinterval(150)) {
-        let x = myGameArea.canvas.width;
-        let altezzaMin = 20;
-        let altezzaMax = 200;
-        let h = Math.floor(Math.random() * (altezzaMax - altezzaMin + 1) + altezzaMin);
-        let gapMin = 150;
-        let gapMax = 200;
-        let g = Math.floor(Math.random() * (gapMax - gapMin + 1) + gapMin);
-        
-        ostacoli.push(new obstacleComponent(20, h, x, 0));
-        ostacoli.push(new obstacleComponent(20, myGameArea.canvas.height - h - g, x, h + g));
-    }
+    if (punteggio >= 1000 && punteggio < 1050 && mondo == 1) { gestioneOstacoli.lista = []; mondo = 2; }
+    if (punteggio >= 2000 && punteggio < 2050 && mondo == 2) { gestioneOstacoli.lista = []; mondo = 3; }
 
-    for (let i = 0; i < ostacoli.length; i++) {
-        ostacoli[i].x = ostacoli[i].x - 2;
-        disegnaOstacolo(ostacoli[i]);
-    }
+    let coloreCielo = (mondo == 2) ? "#000033" : (mondo == 3) ? "orange" : "skyblue";
+    myGameArea.canvas.style.backgroundColor = coloreCielo;
+
+    gestioneOstacoli.genera();
+    gestioneOstacoli.aggiorna();
 
     let ctx = myGameArea.context;
-    ctx.font = "30px Consolas";
-    ctx.fillStyle = "black";
-    ctx.fillText("SCORE: " + myGameArea.frameNo, 280, 40);
+    ctx.fillStyle = "#228B22";
+    ctx.fillRect(0, myGameArea.canvas.height - 20, myGameArea.canvas.width, 20);
+
+    ctx.font = "25px Arial";
+    ctx.fillStyle = (mondo == 2) ? "white" : "black";
+    ctx.fillText("MONDO: " + mondo + "  SCORE: " + punteggio, 20, 40);
 
     robot.newPos();
     robot.update();
@@ -154,27 +122,24 @@ function updateGameArea() {
 }
 
 function everyinterval(n) {
-    if ((myGameArea.frameNo / n) % 1 == 0) { 
-        return true; 
-    }
-    return false;
+    return (myGameArea.frameNo / n) % 1 == 0;
 }
 
 function moveup() { 
-    robot.speedY = -3;
- }
-function movedown() { 
-    robot.speedY = 3; 
+    if (robot.onGround) {
+        robot.speedY = robot.saltoForza;
+        robot.onGround = false;
+    }
+}
+function moveleft() { robot.speedX = -7; }
+function moveright() { robot.speedX = 7; }
+function clearmove() { robot.speedX = 0; }
 
-}
-function moveleft() { 
-    robot.speedX = -3; 
-}
-
-    function moveright() { 
-    robot.speedX = 3; 
-}
-
-function clearmove() { 
-    robot.speedX = 0; robot.speedY = 0; 
-}
+window.addEventListener('keydown', function (e) {
+    if (e.key == "ArrowUp" || e.key == "w") moveup();
+    if (e.key == "ArrowLeft" || e.key == "a") moveleft();
+    if (e.key == "ArrowRight" || e.key == "d") moveright();
+});
+window.addEventListener('keyup', function (e) {
+    if (e.key == "ArrowLeft" || e.key == "a" || e.key == "ArrowRight" || e.key == "d") clearmove();
+});
