@@ -12,7 +12,7 @@ var gestioneOstacoli = {
             if (mondo == 2) {
                 coloreTubi = "darkgreen"; 
             } else if (mondo == 3) {
-                coloreTubi = "#b22222";   
+                coloreTubi = "#b22222dc";   
             } else {
                 coloreTubi = "green";     
             }
