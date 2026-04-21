@@ -9,7 +9,7 @@ function startGame() {
     robot.loadImages();
 }
 
-var robot = {
+robot = {
     x: 100,
     y: 120,
     width: 60,
@@ -22,7 +22,23 @@ var robot = {
     image: null,
     onGround: false,
     saltoForza: -15,
+reset: function() {
+        document.getElementById("menuMorte").style.display = "none";
+        
+        punteggio = 0;
+        mondo = 1;
+        myGameArea.frameNo = 0;
+        gestioneOstacoli.lista = []; 
+        
+        this.x = 100;
+        this.y = 120;
+        this.speedX = 0;
+        this.speedY = 0;
+        this.onGround = false;
 
+        myGameArea.stop(); 
+        myGameArea.start(); 
+    },
     loadImages: function() {
         for (imgPath of running) {
             var img = new Image(this.width, this.height);
@@ -30,6 +46,25 @@ var robot = {
             this.imageList.push(img);
         }
         this.image = this.imageList[this.actualFrame];
+    },
+
+    salta: function() {
+        if (this.onGround) {
+            this.speedY = this.saltoForza;
+            this.onGround = false;
+        }
+    },
+
+    vaiSinistra: function() {
+        this.speedX = -7;
+    },
+
+    vaiDestra: function() {
+        this.speedX = 7;
+    },
+
+    fermati: function() {
+        this.speedX = 0;
     },
 
     newPos: function() {
@@ -41,7 +76,8 @@ var robot = {
         let aTerra = false;
         let pavimentoY = myGameArea.canvas.height - this.height - 20;
 
-        for (let obs of gestioneOstacoli.lista) {
+        for (let i = 0; i < gestioneOstacoli.lista.length; i++) {
+            let obs = gestioneOstacoli.lista[i];
             if (this.speedY > 0 && 
                 this.x + this.width > obs.x && 
                 this.x < obs.x + obs.width &&
@@ -62,36 +98,53 @@ var robot = {
 
         this.onGround = aTerra;
 
-        if (this.x < 0) this.x = 0;
-        if (this.x > myGameArea.canvas.width - this.width) this.x = myGameArea.canvas.width - this.width;
+        if (this.x < 0) {
+            this.x = 0;
+        }
+        if (this.x > myGameArea.canvas.width - this.width) {
+            this.x = myGameArea.canvas.width - this.width;
+        }
     },
 
     update: function() {
-        if (Math.abs(this.speedX) > 0.2) {
             this.contaFrame++;
             if (this.contaFrame >= 6) {
                 this.contaFrame = 0;
                 this.actualFrame = (this.actualFrame + 1) % this.imageList.length;
                 this.image = this.imageList[this.actualFrame];
-            }
+            
         }
     },
 
     crashWith: function(otherobj) {
         let precisione = 10;
-        return !(this.y + this.height - precisione < otherobj.y || 
-                 this.y + precisione > otherobj.y + otherobj.height || 
-                 this.x + this.width - precisione < otherobj.x || 
-                 this.x + precisione > otherobj.x + otherobj.width);
+
+        let mioSinistra = this.x + precisione;
+        let mioDestra = this.x + this.width - precisione;
+        let mioSopra = this.y + precisione;
+        let mioSotto = this.y + this.height - precisione;
+
+        let ostSinistra = otherobj.x;
+        let ostDestra = otherobj.x + otherobj.width;
+        let ostSopra = otherobj.y;
+        let ostSotto = otherobj.y + otherobj.height;
+
+        if (mioSotto < ostSopra ||  mioSopra > ostSotto ||  mioDestra < ostSinistra || mioSinistra > ostDestra) {
+            return false; 
+        }
+        return true; 
     }
 };
 
 function updateGameArea() {
     for (let i = 0; i < gestioneOstacoli.lista.length; i++) {
         let obs = gestioneOstacoli.lista[i];
-        if (robot.crashWith(obs) && robot.y + robot.height > obs.y + 5) {
-            myGameArea.stop();
-            return;
+        if (robot.crashWith(obs)) {
+            if (robot.y + robot.height > obs.y + 5) {
+                myGameArea.stop();
+        document.getElementById("menuMorte").style.display = "flex";                
+    return;
+            }
         }
     }
 
@@ -99,10 +152,23 @@ function updateGameArea() {
     myGameArea.frameNo = (myGameArea.frameNo || 0) + 1;
     punteggio = myGameArea.frameNo;
 
-    if (punteggio >= 1000 && punteggio < 1050 && mondo == 1) { gestioneOstacoli.lista = []; mondo = 2; }
-    if (punteggio >= 2000 && punteggio < 2050 && mondo == 2) { gestioneOstacoli.lista = []; mondo = 3; }
+    if (punteggio >= 1000 && punteggio < 1050 && mondo == 1) { 
+        gestioneOstacoli.lista = []; 
+        mondo = 2; 
+    }
+    if (punteggio >= 2000 && punteggio < 2050 && mondo == 2) { 
+        gestioneOstacoli.lista = []; 
+        mondo = 3; 
+    }
 
-    let coloreCielo = (mondo == 2) ? "#000033" : (mondo == 3) ? "orange" : "skyblue";
+    let coloreCielo;
+    if (mondo == 2) {
+        coloreCielo = "#000033";
+    } else if (mondo == 3) {
+        coloreCielo = "orange";
+    } else {
+        coloreCielo = "skyblue";
+    }
     myGameArea.canvas.style.backgroundColor = coloreCielo;
 
     gestioneOstacoli.genera();
@@ -112,8 +178,14 @@ function updateGameArea() {
     ctx.fillStyle = "#228B22";
     ctx.fillRect(0, myGameArea.canvas.height - 20, myGameArea.canvas.width, 20);
 
+    let coloreTesto;
+    if (mondo == 2) {
+        coloreTesto = "white";
+    } else {
+        coloreTesto = "black";
+    }
     ctx.font = "25px Arial";
-    ctx.fillStyle = (mondo == 2) ? "white" : "black";
+    ctx.fillStyle = coloreTesto;
     ctx.fillText("MONDO: " + mondo + "  SCORE: " + punteggio, 20, 40);
 
     robot.newPos();
@@ -122,24 +194,26 @@ function updateGameArea() {
 }
 
 function everyinterval(n) {
-    return (myGameArea.frameNo / n) % 1 == 0;
-}
-
-function moveup() { 
-    if (robot.onGround) {
-        robot.speedY = robot.saltoForza;
-        robot.onGround = false;
+    if ((myGameArea.frameNo / n) % 1 == 0) {
+        return true;
     }
+    return false;
 }
-function moveleft() { robot.speedX = -7; }
-function moveright() { robot.speedX = 7; }
-function clearmove() { robot.speedX = 0; }
 
 window.addEventListener('keydown', function (e) {
-    if (e.key == "ArrowUp" || e.key == "w") moveup();
-    if (e.key == "ArrowLeft" || e.key == "a") moveleft();
-    if (e.key == "ArrowRight" || e.key == "d") moveright();
+    if (e.key == "ArrowUp" || e.key == "w") { 
+        robot.salta(); 
+    }
+    if (e.key == "ArrowLeft" || e.key == "a") { 
+        robot.vaiSinistra(); 
+    }
+    if (e.key == "ArrowRight" || e.key == "d") {
+         robot.vaiDestra(); 
+        }
 });
+
 window.addEventListener('keyup', function (e) {
-    if (e.key == "ArrowLeft" || e.key == "a" || e.key == "ArrowRight" || e.key == "d") clearmove();
+    if (e.key == "ArrowLeft" || e.key == "a" || e.key == "ArrowRight" || e.key == "d") {
+        robot.fermati();
+    }
 });

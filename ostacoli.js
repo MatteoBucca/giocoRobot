@@ -1,12 +1,21 @@
 var gestioneOstacoli = {
     lista: [],
     
-    genera: function() {
+   genera: function() {
         if (everyinterval(50)) {
             let x = myGameArea.canvas.width;
             let pY = myGameArea.canvas.height - 20;
             let scelta = Math.floor(Math.random() * 4);
-            let coloreTubi = (mondo == 2) ? "darkgreen" : (mondo == 3) ? "#b22222" : "green";
+            
+            let coloreTubi;
+
+            if (mondo == 2) {
+                coloreTubi = "darkgreen"; 
+            } else if (mondo == 3) {
+                coloreTubi = "#b22222";   
+            } else {
+                coloreTubi = "green";     
+            }
 
             if (scelta == 0) {
                 this.lista.push(new obstacleComponent(45, 70, x, pY - 70, coloreTubi, "tubo"));

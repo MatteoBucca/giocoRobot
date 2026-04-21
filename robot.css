@@ -1,32 +1,72 @@
-body { 
-            background-color:orange; 
-            text-align: center; 
-            font-family: Arial, sans-serif; 
-            margin: 0;
-            padding: 20px;
-        }
-        canvas { 
-            background-color: white; 
-            border: 3px solid black; 
-            box-shadow: 0px 0px 15px gray;
-        }
-        .controls { 
-            margin-top: 20px; 
-        }
-        .middle-row { 
-            margin: 10px 0; 
-        }
-        
-        button { 
-            padding: 15px 30px; 
-            font-size: 16px; 
-            font-weight: bold;
-            cursor: pointer; 
-            border-radius: 8px;
-            border: 2px solid black;
-            background-color: white;
-        }
-        button:active { 
-            background-color:gray; 
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    overflow: hidden;
+}
+
+#game-wrapper {
+    position: absolute;
+    top: 40%;  
+    left: 50%;
+    transform: translate(-50%, -50%); 
+    width: 800px; 
+    height: 400px;
+    background-color: #333; 
+    line-height: 0;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#menuMorte {
+    display: none; 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    background-color: rgba(0, 0, 0, 0.95);
+    border: 2px solid white;
+    padding: 40px;
+    border-radius: 10px;
+    z-index: 1000;
+    min-width: 280px;
+}
+
+#menuMorte h1 {
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 0 0 20px 0;
+    font-size: 36px;
+    white-space: nowrap;
+}
+
+#btnRestart {
+    background-color: white;
+    color: black;
+    border: none;
+    padding: 15px 35px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+#btnRestart:hover {
+    background-color: #ccc;
+}

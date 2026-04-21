@@ -9,15 +9,11 @@
 
     <h1>The Robot</h1>
     
-    <div id="canvas-container"></div>
-
-    <div class="controls">
-        <button onmousedown="moveup()" onmouseup="clearmove()">UP</button>
-        <div class="middle-row">
-            <button onmousedown="moveleft()" onmouseup="clearmove()">LEFT</button>
-            <button onmousedown="moveright()" onmouseup="clearmove()">RIGHT</button>
+    <div id="game-wrapper">
+        <div id="menuMorte">
+            <h1>GAME OVER</h1>
+            <button id="btnRestart" onclick="robot.reset()">RICOMINCIA</button>
         </div>
-        <button onmousedown="movedown()" onmouseup="clearmove()">DOWN</button>
     </div>
 
     <script src="immagini.js"></script>
